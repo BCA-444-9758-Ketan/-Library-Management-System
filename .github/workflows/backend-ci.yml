@@ -1,0 +1,35 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smart_library?schema=public
+
+      - name: Run test script
+        run: npm test
+
+      - name: App bootstrap smoke test
+        run: node -e "require('./app'); console.log('app-load-ok')"

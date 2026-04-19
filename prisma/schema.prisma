@@ -1,0 +1,155 @@
+// ===========================================
+// Smart Distributed Library Management System
+// Prisma Schema
+// ===========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---- Enums ----
+
+enum Role {
+  STUDENT
+  LIBRARIAN
+  ADMIN
+}
+
+enum TransactionStatus {
+  ISSUED
+  RETURNED
+  OVERDUE
+}
+
+enum ReservationStatus {
+  PENDING
+  FULFILLED
+  CANCELLED
+}
+
+// ---- Models ----
+
+model User {
+  id             Int           @id @default(autoincrement())
+  name           String
+  email          String        @unique
+  password       String
+  role           Role          @default(STUDENT)
+  borrowingLimit Int           @default(3) @map("borrowing_limit")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  transactions   Transaction[]
+  reservations   Reservation[]
+
+  @@map("users")
+}
+
+model Book {
+  id            Int           @id @default(autoincrement())
+  title         String
+  author        String
+  isbn          String        @unique
+  category      String
+  description   String?
+  publishedYear Int?          @map("published_year")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  inventory     Inventory[]
+  transactions  Transaction[]
+  reservations  Reservation[]
+
+  @@index([title])
+  @@index([author])
+  @@index([category])
+  @@map("books")
+}
+
+model Branch {
+  id           Int           @id @default(autoincrement())
+  name         String
+  location     String
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  inventory    Inventory[]
+  transactions Transaction[]
+  reservations Reservation[]
+
+  @@map("branches")
+}
+
+model Inventory {
+  id                Int    @id @default(autoincrement())
+  bookId            Int    @map("book_id")
+  branchId          Int    @map("branch_id")
+  totalQuantity     Int    @map("total_quantity")
+  availableQuantity Int    @map("available_quantity")
+  book              Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  branch            Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, branchId])
+  @@index([bookId])
+  @@index([branchId])
+  @@map("inventory")
+}
+
+model Transaction {
+  id         Int               @id @default(autoincrement())
+  userId     Int               @map("user_id")
+  bookId     Int               @map("book_id")
+  branchId   Int               @map("branch_id")
+  status     TransactionStatus @default(ISSUED)
+  issuedAt   DateTime          @default(now()) @map("issued_at")
+  dueDate    DateTime          @map("due_date")
+  returnedAt DateTime?         @map("returned_at")
+  fineAmount Float             @default(0) @map("fine_amount")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book       Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  branch     Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([branchId])
+  @@index([status])
+  @@map("transactions")
+}
+
+model Reservation {
+  id         Int               @id @default(autoincrement())
+  userId     Int               @map("user_id")
+  bookId     Int               @map("book_id")
+  branchId   Int               @map("branch_id")
+  status     ReservationStatus @default(PENDING)
+  reservedAt DateTime          @default(now()) @map("reserved_at")
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book       Book              @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  branch     Branch            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([branchId])
+  @@index([status])
+  @@map("reservations")
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  entity    String
+  entityId  Int      @map("entity_id")
+  userId    Int?     @map("user_id")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}
