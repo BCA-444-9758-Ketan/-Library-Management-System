@@ -4,9 +4,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Users as UsersIcon, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toUiRole } from "@/lib/api";
+import { StatusBadge } from "@/components/StatusBadge";
+import { toast } from "sonner";
 
 interface ApiUser {
   id: number;
@@ -22,6 +25,40 @@ interface ApiUser {
 interface UsersEnvelope {
   success: boolean;
   data: ApiUser[];
+}
+
+interface ApiProfileTransaction {
+  id: number;
+  status: "ISSUED" | "RETURNED" | "OVERDUE";
+  issuedAt: string;
+  dueDate: string;
+  fineAmount?: number | null;
+  book: {
+    id: number;
+    title: string;
+    author: string;
+    isbn: string;
+  };
+  branch: {
+    id: number;
+    name: string;
+    location: string;
+  };
+}
+
+interface ApiUserProfile {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  borrowingLimit: number;
+  createdAt: string;
+  transactions: ApiProfileTransaction[];
+}
+
+interface UserProfileEnvelope {
+  success: boolean;
+  data: ApiUserProfile;
 }
 
 interface AdminUser {
@@ -43,6 +80,9 @@ const Users = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profile, setProfile] = useState<ApiUserProfile | null>(null);
 
   useEffect(() => {
     api.get<UsersEnvelope>(endpoints.users, {
@@ -67,6 +107,21 @@ const Users = () => {
   const filtered = users.filter((u) =>
     !q || `${u.name} ${u.email}`.toLowerCase().includes(q.toLowerCase())
   );
+
+  const openUserProfile = async (id: string) => {
+    setProfileOpen(true);
+    setProfileLoading(true);
+    setProfile(null);
+
+    try {
+      const { data } = await api.get<UserProfileEnvelope>(endpoints.usersProfile(id));
+      setProfile(data.data);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Could not load user profile.");
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -113,7 +168,7 @@ const Users = () => {
                   <td className="px-5 py-3">{u.active_loans}</td>
                   <td className="px-5 py-3 text-muted-foreground">{u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
                   <td className="px-5 py-3 text-right">
-                    <Button variant="ghost" size="sm">View</Button>
+                    <Button variant="ghost" size="sm" onClick={() => openUserProfile(u.id)}>View</Button>
                   </td>
                 </tr>
               ))}
@@ -121,6 +176,85 @@ const Users = () => {
           </table>
         </div>
       </div>
+
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>User profile</DialogTitle>
+            <DialogDescription>Live data from the user profile endpoint.</DialogDescription>
+          </DialogHeader>
+
+          {profileLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-56 w-full" />
+            </div>
+          ) : !profile ? (
+            <EmptyState icon={UsersIcon} title="Profile unavailable" description="Could not fetch this profile." />
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-4 rounded-lg border border-border bg-muted/20 p-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Name</p>
+                  <p className="font-medium">{profile.name}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
+                  <p className="font-medium">{profile.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Role</p>
+                  <p className="font-medium capitalize">{profile.role.toLowerCase()}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Borrow limit</p>
+                  <p className="font-medium">{profile.borrowingLimit}</p>
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-border">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-secondary/60">
+                      <tr className="text-left text-xs font-semibold uppercase tracking-wide text-primary">
+                        <th className="px-4 py-3">Book</th>
+                        <th className="px-4 py-3">Branch</th>
+                        <th className="px-4 py-3">Issued</th>
+                        <th className="px-4 py-3">Due</th>
+                        <th className="px-4 py-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {profile.transactions.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                            No active issued transactions.
+                          </td>
+                        </tr>
+                      ) : (
+                        profile.transactions.map((tx, idx) => (
+                          <tr key={tx.id} className={idx % 2 ? "bg-muted/30" : ""}>
+                            <td className="px-4 py-3">
+                              <p className="font-medium">{tx.book.title}</p>
+                              <p className="text-xs text-muted-foreground">{tx.book.author}</p>
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground">{tx.branch.name}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{new Date(tx.issuedAt).toLocaleDateString()}</td>
+                            <td className="px-4 py-3 text-muted-foreground">{new Date(tx.dueDate).toLocaleDateString()}</td>
+                            <td className="px-4 py-3">
+                              <StatusBadge status={tx.status.toLowerCase() as "issued" | "overdue" | "returned"}>{tx.status}</StatusBadge>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

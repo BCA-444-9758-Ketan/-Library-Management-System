@@ -53,7 +53,9 @@ export const endpoints = {
   },
   books: {
     list: "/books",
+    create: "/books",
     detail: (id: string | number) => `/books/${id}`,
+    availability: (id: string | number) => `/books/${id}/availability`,
     issue: "/transactions/issue",
     reserve: "/reservations",
   },
@@ -68,10 +70,12 @@ export const endpoints = {
   },
   recommendations: (userId: string | number) => `/recommendations/${userId}`,
   branches: "/branches",
+  branchCreate: "/branches",
   transactions: {
     all: "/transactions",
   },
   users: "/users",
+  usersProfile: (id: string | number) => `/users/${id}`,
   auditLog: "/audit-logs",
   inventory: {
     list: "/inventory",

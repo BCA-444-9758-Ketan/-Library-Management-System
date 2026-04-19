@@ -27,7 +27,7 @@ const Landing = () => {
             <Link to="/login">
               <Button variant="ghost" className="text-white hover:bg-white/10">Sign in</Button>
             </Link>
-            <Link to="/login" className="hidden sm:block">
+            <Link to="/register" className="hidden sm:block">
               <Button className="bg-white text-primary hover:bg-white/90">Get Started</Button>
             </Link>
           </div>
@@ -49,6 +49,11 @@ const Landing = () => {
               <Link to="/login">
                 <Button size="lg" className="bg-white text-primary hover:bg-white/90">
                   Sign in to your account <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button size="lg" className="bg-primary-foreground/10 text-white hover:bg-primary-foreground/20">
+                  Create student account
                 </Button>
               </Link>
               <a href="#features">

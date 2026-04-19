@@ -14,10 +14,24 @@ interface AuthContextValue {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string, role: Role) => Promise<User>;
+  register: (name: string, email: string, password: string) => Promise<User>;
   logout: () => void;
 }
 
 interface LoginResponse {
+  success: boolean;
+  data: {
+    token: string;
+    user: {
+      id: string | number;
+      name: string;
+      email: string;
+      role: string;
+    };
+  };
+}
+
+interface RegisterResponse {
   success: boolean;
   data: {
     token: string;
@@ -80,6 +94,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return usr;
   };
 
+  const register = async (name: string, email: string, password: string) => {
+    const { data } = await api.post<RegisterResponse>(endpoints.auth.register, { name, email, password });
+    const { token: tk, user: rawUser } = data.data;
+    const usr = normalizeUser(rawUser);
+
+    localStorage.setItem("smartlib_token", tk);
+    localStorage.setItem("smartlib_user", JSON.stringify(usr));
+    setToken(tk);
+    setUser(usr);
+    return usr;
+  };
+
   const logout = () => {
     localStorage.removeItem("smartlib_token");
     localStorage.removeItem("smartlib_user");
@@ -89,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen, BookMarked, CalendarClock, Building2,
-  Sparkles, Users, ScrollText, LogOut, Menu, Search, Bell, X,
+  Sparkles, Users, ScrollText, LogOut, Menu, Search, Bell, X, Boxes, ClipboardList, UserCircle2,
 } from "lucide-react";
 import { useAuth, Role } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,9 @@ const navItems: NavItem[] = [
   { to: "/reservations", label: "Reservations", icon: CalendarClock },
   { to: "/branches", label: "Branches", icon: Building2 },
   { to: "/recommendations", label: "Recommendations", icon: Sparkles },
+  { to: "/transactions", label: "Transactions", icon: ClipboardList, roles: ["admin", "librarian"] },
+  { to: "/inventory", label: "Inventory", icon: Boxes, roles: ["admin", "librarian"] },
+  { to: "/profile", label: "Profile", icon: UserCircle2 },
   { to: "/admin/users", label: "Users", icon: Users, roles: ["admin"] },
   { to: "/admin/audit", label: "Audit Log", icon: ScrollText, roles: ["admin"] },
 ];
@@ -105,6 +108,9 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
     "/reservations": "Reservations",
     "/branches": "Branches",
     "/recommendations": "Picked For You",
+    "/transactions": "Transactions",
+    "/inventory": "Inventory",
+    "/profile": "My Profile",
     "/admin/users": "Users Management",
     "/admin/audit": "Audit Log",
   };

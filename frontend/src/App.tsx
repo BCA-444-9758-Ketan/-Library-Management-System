@@ -9,12 +9,16 @@ import { AppLayout } from "@/components/layout/AppLayout";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Books from "./pages/Books";
 import MyLoans from "./pages/MyLoans";
 import Reservations from "./pages/Reservations";
 import Recommendations from "./pages/Recommendations";
 import Branches from "./pages/Branches";
+import Transactions from "./pages/Transactions";
+import Inventory from "./pages/Inventory";
+import Profile from "./pages/Profile";
 import Users from "./pages/admin/Users";
 import AuditLog from "./pages/admin/AuditLog";
 import NotFound from "./pages/NotFound.tsx";
@@ -37,6 +41,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
             <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
             <Route path="/books" element={<Protected><Books /></Protected>} />
@@ -44,6 +49,10 @@ const App = () => (
             <Route path="/reservations" element={<Protected><Reservations /></Protected>} />
             <Route path="/branches" element={<Protected><Branches /></Protected>} />
             <Route path="/recommendations" element={<Protected><Recommendations /></Protected>} />
+            <Route path="/profile" element={<Protected><Profile /></Protected>} />
+
+            <Route path="/transactions" element={<Protected roles={["admin", "librarian"]}><Transactions /></Protected>} />
+            <Route path="/inventory" element={<Protected roles={["admin", "librarian"]}><Inventory /></Protected>} />
 
             <Route path="/admin/users" element={<Protected roles={["admin"]}><Users /></Protected>} />
             <Route path="/admin/audit" element={<Protected roles={["admin"]}><AuditLog /></Protected>} />

@@ -7,29 +7,40 @@ on:
     branches: [main]
 
 jobs:
-  build-and-verify:
+  docker-ci-check:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
+      - name: Build Docker image
+        run: docker build -t smart-library-backend:${{ github.sha }} .
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Run backend container
+        run: |
+          docker run -d --name smart-library-ci \
+            -p 5000:5000 \
+            -e NODE_ENV=test \
+            -e PORT=5000 \
+            -e DATABASE_URL='postgresql://postgres:postgres@localhost:5432/smart_library?schema=public' \
+            -e REDIS_URL='redis://localhost:6379' \
+            -e JWT_SECRET='ci-secret-key' \
+            -e FINE_PER_DAY=5 \
+            -e LOAN_PERIOD_DAYS=14 \
+            smart-library-backend:${{ github.sha }}
 
-      - name: Generate Prisma client
-        run: npm run prisma:generate
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smart_library?schema=public
+      - name: Health check
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://localhost:5000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Container failed health check. Logs:" && docker logs smart-library-ci
+          exit 1
 
-      - name: Run test script
-        run: npm test
-
-      - name: App bootstrap smoke test
-        run: node -e "require('./app'); console.log('app-load-ok')"
+      - name: Cleanup container
+        if: always()
+        run: docker rm -f smart-library-ci || true

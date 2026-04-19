@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { api, endpoints } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Building2, MapPin, BookOpen } from "lucide-react";
+import { toast } from "sonner";
 
 interface ApiBranch {
   id: number;
@@ -27,10 +32,17 @@ interface Branch {
 }
 
 const Branches = () => {
+  const { user } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const [location, setLocation] = useState("");
 
-  useEffect(() => {
+  const canCreateBranch = user?.role === "admin";
+
+  const loadBranches = () => {
+    setLoading(true);
     api.get<BranchesEnvelope>(endpoints.branches)
       .then(({ data }) => {
         const mapped = (data.data || []).map((branch) => ({
@@ -44,7 +56,32 @@ const Branches = () => {
       })
       .catch(() => setBranches([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadBranches();
   }, []);
+
+  const createBranch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canCreateBranch) return;
+
+    setCreating(true);
+    try {
+      await api.post(endpoints.branchCreate, {
+        name: name.trim(),
+        location: location.trim(),
+      });
+      toast.success("Branch created successfully.");
+      setName("");
+      setLocation("");
+      loadBranches();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Could not create branch.");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -52,6 +89,40 @@ const Branches = () => {
         <h2 className="text-lg font-semibold">Our branches</h2>
         <p className="text-sm text-muted-foreground">CIMAGE library locations across Patna.</p>
       </div>
+
+      {canCreateBranch && (
+        <section className="rounded-xl border border-border bg-card p-4 shadow-card">
+          <h3 className="font-semibold">Add new branch</h3>
+          <p className="text-sm text-muted-foreground">Admin-only branch creation endpoint.</p>
+          <form onSubmit={createBranch} className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="branch-name">Branch name</Label>
+              <Input
+                id="branch-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                minLength={2}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="branch-location">Location</Label>
+              <Input
+                id="branch-location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                required
+                minLength={2}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Button type="submit" disabled={creating}>
+                {creating ? "Creating..." : "Create branch"}
+              </Button>
+            </div>
+          </form>
+        </section>
+      )}
 
       {loading ? (
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
