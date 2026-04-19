@@ -73,6 +73,36 @@ Server: `http://localhost:5000`
 Swagger: `http://localhost:5000/api-docs`
 Health: `http://localhost:5000/health`
 
+## Frontend Setup (React + Vite)
+
+The project now includes a frontend app under `frontend/` that is wired to the backend APIs.
+
+1. Install frontend dependencies:
+
+```bash
+npm --prefix frontend install
+```
+
+2. Configure frontend environment:
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
+3. Start frontend dev server:
+
+```bash
+npm run frontend:dev
+```
+
+Frontend: `http://localhost:5173`
+
+Helpful root scripts:
+
+- `npm run frontend:dev`
+- `npm run frontend:build`
+- `npm run frontend:preview`
+
 ## Setup (Docker)
 
 ```bash
