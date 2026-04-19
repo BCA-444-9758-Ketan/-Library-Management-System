@@ -1,42 +1,114 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-:root {
-  font-family: Manrope, 'Segoe UI', sans-serif;
-  color: #0f172a;
-  background: #e2e8f0;
-  line-height: 1.45;
-  font-weight: 500;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SmartLib design system — clean white + blue, professional university portal */
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;        /* #F8FAFC */
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 224 76% 40%;           /* #1E40AF deep blue */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 217 91% 60%;      /* #3B82F6 bright blue */
+
+    --secondary: 214 100% 97%;        /* very light blue tint */
+    --secondary-foreground: 224 76% 40%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 217 91% 60%;            /* #3B82F6 */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 224 76% 40%;
+
+    --radius: 0.625rem;
+
+    /* Gradients */
+    --gradient-header: linear-gradient(90deg, hsl(224 76% 40%), hsl(217 91% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(224 76% 40%) 0%, hsl(217 91% 60%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(214 100% 97%), hsl(0 0% 100%));
+
+    /* Shadows — soft blue tint */
+    --shadow-card: 0 1px 3px 0 hsl(224 76% 40% / 0.06), 0 1px 2px -1px hsl(224 76% 40% / 0.06);
+    --shadow-card-hover: 0 10px 25px -5px hsl(224 76% 40% / 0.12), 0 8px 10px -6px hsl(224 76% 40% / 0.08);
+    --shadow-elegant: 0 20px 50px -12px hsl(224 76% 40% / 0.18);
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 224 76% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 100% 97%;
+    --sidebar-accent-foreground: 224 76% 40%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 224 76% 40%;
+
+    --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 }
 
-* {
-  box-sizing: border-box;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  h1, h2, h3, h4 {
+    @apply font-semibold tracking-tight;
+  }
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    radial-gradient(1000px 420px at 0% 0%, rgba(14, 116, 144, 0.12), transparent 62%),
-    radial-gradient(900px 380px at 100% 0%, rgba(217, 119, 6, 0.11), transparent 62%),
-    linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-}
-
-#root {
-  min-height: 100vh;
-}
-
-h1,
-h2,
-h3 {
-  margin: 0;
-  font-family: Sora, Manrope, sans-serif;
-  color: #0f172a;
-}
-
-p {
-  margin: 0;
+@layer components {
+  .gradient-header {
+    background: var(--gradient-header);
+  }
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .gradient-soft {
+    background: var(--gradient-soft);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  .card-lift {
+    @apply transition-all duration-200 hover:-translate-y-0.5;
+    box-shadow: var(--shadow-card);
+  }
+  .card-lift:hover {
+    box-shadow: var(--shadow-card-hover);
+  }
 }

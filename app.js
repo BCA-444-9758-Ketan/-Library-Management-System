@@ -19,6 +19,7 @@ const reservationsRoutes = require('./src/modules/reservations/reservations.rout
 const branchesRoutes = require('./src/modules/branches/branches.routes');
 const usersRoutes = require('./src/modules/users/users.routes');
 const recommendationsRoutes = require('./src/modules/recommendations/recommendations.routes');
+const auditRoutes = require('./src/modules/audit/audit.routes');
 
 const app = express();
 
@@ -97,6 +98,7 @@ app.use('/api/v1/transactions', issueReturnLimiter, transactionsRoutes);
 app.use('/api/v1/reservations', reservationsRoutes);
 app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/recommendations', recommendationsRoutes);
+app.use('/api/v1/audit-logs', auditRoutes);
 
 app.use((req, res) => {
   return error(res, {
